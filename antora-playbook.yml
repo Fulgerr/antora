@@ -1,0 +1,23 @@
+# antora-playbook.yml
+site:
+  title: My First Multi-Repo Docs Site
+  url: http://localhost:5000 # For local preview
+  start_page: component-a::index.adoc # component_name::module:page.adoc
+
+content:
+  sources:
+    - url: https://github.com/Fulgerr/repoA.git # YOUR GitHub repo URL
+      branches: main # Or the branch name you used (likely 'main')
+      # start_path: . # Default, antora.yml is in the root
+
+    - url: https://github.com/Fulgerr/repoC.git # YOUR GitHub repo URL
+      branches: main
+      # start_path: .
+      
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+
+output:
+  dir: ./public # Site will be generated here
