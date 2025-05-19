@@ -54,3 +54,36 @@ jobs:
           # force_orphan: true # Optional: Creates a fresh branch history for gh-pages each time.
                                # This can be useful for gh-pages branches to keep history clean.
                                # Use with caution if you have important history on gh-pages you want to keep.
+
+                               # ... (steps for checkout, setup-node, install antora)
+
+      # Add this step to clear Antora's cache before building
+      - name: Clear Antora cache (for debugging)
+        run: rm -rf ~/.cache/antora
+
+      # Modify the Antora build command to add --fetch
+      - name: Build Antora site
+        run: antora --fetch antora-playbook.yml # Ensures Antora tries to get the latest
+
+      # Add this step to inspect the output directory on the runner
+      - name: Inspect build output (for debugging)
+        run: |
+          echo "Listing contents of ./public directory:"
+          ls -R ./public
+          echo "-----------------------------------------------------"
+          echo "Searching for your new unique content string in ./public:"
+          # !!! REPLACE 'YourUniqueTextStringFromNewDocs' with actual unique text from your recent changes !!!
+          if grep -r "YourUniqueTextStringFromNewDocs" ./public; then
+            echo "SUCCESS: New content FOUND in build output before deployment."
+          else
+            echo "FAILURE: New content NOT FOUND in build output before deployment."
+          fi
+          echo "-----------------------------------------------------"
+
+      # This is your existing deployment step
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          # ... other options ...
