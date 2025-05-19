@@ -1,4 +1,4 @@
-name: Build and Deploy Antora Site
+name: Build and Deploy Antora Site to gh-pages Branch
 
 # Controls when the workflow will run
 on:
@@ -10,24 +10,18 @@ on:
     branches:
       - main # Adjust if your main branch is named differently (e.g., master)
 
-# Sets permissions for the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Sets permissions for the GITHUB_TOKEN
+# 'contents: write' is needed to allow the action to push to your gh-pages branch
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Defines a single job called "build-and-deploy"
 jobs:
   build-and-deploy:
-    name: Build and Deploy
+    name: Build and Deploy to gh-pages
     runs-on: ubuntu-latest # Use a GitHub-hosted runner
 
-    environment: # Optional: specify a GitHub Pages environment if you have one set up
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      # 1. Checkout your repository's code so the job can access it
+      # 1. Checkout your repository's code (the branch that triggers the workflow, e.g., main)
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -39,23 +33,24 @@ jobs:
           cache: 'npm' # Cache npm dependencies to speed up subsequent builds
 
       # 3. Install Antora CLI and the default site generator globally
-      #    If Antora is part of your project's package.json, you might use 'npm ci' here instead.
       - name: Install Antora CLI and Site Generator
         run: npm install -g @antora/cli @antora/site-generator-default
 
       # 4. Run Antora to build your site using your playbook
-      #    This assumes 'antora-playbook.yml' is in the root of your repository.
+      #    This assumes 'antora-playbook.yml' is in the root and outputs to './public'
       - name: Build Antora site
         run: antora antora-playbook.yml
 
-      # 5. Upload the generated site artifact for GitHub Pages
-      #    This path MUST match Antora's output directory, which you confirmed is 'public'.
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      # 5. Deploy the contents of the './public' directory to the 'gh-pages' branch
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          path: public
-
-      # 6. Deploy the artifact to GitHub Pages
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public  # The directory Antora built your site into
+          # publish_branch: gh-pages # This is the default, so technically optional
+          user_name: 'github-actions[bot]' # Optional: customize the committer name
+          user_email: 'github-actions[bot]@users.noreply.github.com' # Optional: customize the committer email
+          commit_message: 'Deploy Antora site to gh-pages' # Optional: customize the commit message
+          # force_orphan: true # Optional: Creates a fresh branch history for gh-pages each time.
+                               # This can be useful for gh-pages branches to keep history clean.
+                               # Use with caution if you have important history on gh-pages you want to keep.
