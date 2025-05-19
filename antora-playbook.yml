@@ -1,6 +1,6 @@
 # antora-playbook.yml
 site:
-  title: My First Multi-Repo Docs Site
+  title: UiPath Documentation
   url: http://localhost:5000 # For local preview
   start_page: component-a::index.adoc # component_name::module:page.adoc
 

@@ -1,0 +1,55 @@
+name: Build and Deploy Antora Site
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  # Optionally, trigger on push to your main branch
+  push:
+    branches:
+      - main # Or master, or whichever is your primary branch
+
+# Sets permissions for the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Defines a single job called "build-and-deploy"
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest # Use a GitHub-hosted runner
+    steps:
+      # 1. Checkout your repository's code so the job can access it
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js, as Antora is a Node.js application
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Specify a Node.js version compatible with your Antora setup
+          cache: 'npm' # Cache npm dependencies
+
+      # 3. Install Antora CLI and the default site generator
+      #    If you have these in your project's package.json, you might use 'npm ci' instead.
+      - name: Install Antora CLI and Site Generator
+        run: npm install -g @antora/cli @antora/site-generator-default
+
+      # 4. Run Antora to build your site
+      #    Make sure 'antora-playbook.yml' is the correct path to your playbook file.
+      - name: Build Antora site
+        run: antora antora-playbook.yml
+
+      # 5. Upload the generated site artifact for GitHub Pages
+      #    Antora typically outputs to 'build/site'. Adjust 'path' if your output is different.
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/site # This is the default Antora output directory
+
+      # 6. Deploy the artifact to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
